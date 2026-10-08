@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lytesnap — Unaddict the feed.</title>
+  <meta name="description" content="Lytesnap reverses YouTube's recommendation engine. Flood your feed with what you hate — remove the reward that keeps you hooked." />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 43 65'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M11.1819 38.9403C10.5581 37.692 9.45004 35.4744 12.4747 32.9515C13.2968 32.2658 16.2008 30.3786 19.7613 28.0648C24.1891 25.1874 29.6321 21.6502 33.3493 18.9433C34.0061 18.465 34.4441 17.7526 34.5951 16.9543L37.5086 1.55298C37.7269 0.39907 36.4301 -0.434259 35.4712 0.243734L4.94597 21.8269C2.37602 23.5845 -2.00786 27.6968 1.03564 33.2206C3.4768 37.6513 11.4437 39.5134 11.4437 39.5134C11.3896 39.3559 11.2935 39.1636 11.1819 38.9403ZM31.53 25.4505C32.1537 26.6988 33.2618 28.9164 30.2371 31.4393C29.415 32.125 26.511 34.0122 22.9505 36.326C18.5228 39.2034 13.0797 42.7406 9.36254 45.4475C8.70576 45.9258 8.26777 46.6382 8.11675 47.4365L5.20321 62.8378C4.98492 63.9917 6.28172 64.8251 7.24062 64.1471L37.7659 42.5639C40.3358 40.8063 44.7197 36.694 41.6762 31.1702C39.235 26.7395 31.2681 24.8774 31.2681 24.8774C31.3223 25.0349 31.4184 25.2272 31.53 25.4505Z' fill='%23000000'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --purple-deep:  #0B0B2E;
+      --purple-dark:  #1B1464;
+      --purple-mid:   #2D1B69;
+      --purple-light: #6B3FA0;
+      --pink:         #C85C8E;
+      --coral:        #F4845F;
+      --amber:        #F7B267;
+      --gold:         #FCD581;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--purple-deep);
+      color: #fff;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 48px;
+      background: rgba(11, 11, 46, 0.7);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo span { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
+    .nav-cta {
+      padding: 10px 24px;
+      background: linear-gradient(135deg, var(--coral), var(--amber));
+      color: #fff; border: none; border-radius: 50px;
+      font-family: inherit; font-size: 14px; font-weight: 600;
+      cursor: pointer; text-decoration: none;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .nav-cta:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      background: linear-gradient(180deg, #0B0B2E 0%, #1B1464 30%, #2D1B69 60%, #6B3FA0 100%);
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(108,63,160,0.35), transparent 70%);
+      pointer-events: none;
+    }
+    /* stars */
+    .stars { position: absolute; inset: 0; pointer-events: none; }
+    .star {
+      position: absolute; border-radius: 50%; background: #fff;
+      animation: twinkle 3s ease-in-out infinite alternate;
+    }
+
+    .hero-icon { margin-bottom: 28px; position: relative; z-index: 1; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 50px;
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+      font-size: 12px; font-weight: 500; color: var(--gold);
+      margin-bottom: 24px; position: relative; z-index: 1;
+      letter-spacing: 0.5px; text-transform: uppercase;
+    }
+    .hero h1 {
+      font-size: clamp(42px, 7vw, 80px); font-weight: 700;
+      line-height: 1.08; letter-spacing: -2px;
+      margin-bottom: 20px; position: relative; z-index: 1;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--coral), var(--gold));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: clamp(16px, 2.5vw, 20px); font-weight: 400;
+      color: rgba(255,255,255,0.6); line-height: 1.65;
+      max-width: 520px; margin: 0 auto 40px; position: relative; z-index: 1;
+    }
+    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; position: relative; z-index: 1; }
+    .btn-primary {
+      padding: 16px 36px;
+      background: linear-gradient(135deg, var(--coral), var(--amber));
+      color: #fff; border: none; border-radius: 50px;
+      font-family: inherit; font-size: 16px; font-weight: 700;
+      cursor: pointer; text-decoration: none;
+      box-shadow: 0 8px 30px rgba(244,132,95,0.35);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(244,132,95,0.45); }
+    .btn-ghost {
+      padding: 16px 36px;
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);
+      color: #fff; border-radius: 50px;
+      font-family: inherit; font-size: 16px; font-weight: 600;
+      cursor: pointer; text-decoration: none;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,0.14); transform: translateY(-2px); }
+
+    .hero-note {
+      margin-top: 18px; font-size: 13px; color: rgba(255,255,255,0.3);
+      position: relative; z-index: 1;
+    }
+
+    /* sun glow at bottom of hero */
+    .sun-glow {
+      position: absolute; bottom: -80px; left: 50%; transform: translateX(-50%);
+      width: 340px; height: 340px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(244,132,95,0.25), rgba(247,178,103,0.12), transparent 70%);
+      pointer-events: none;
+    }
+
+    /* ── PROBLEM ── */
+    .section { padding: 100px 24px; }
+    .section-inner { max-width: 1080px; margin: 0 auto; }
+    .section-label {
+      display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--gold); margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: clamp(30px, 4.5vw, 52px); font-weight: 700;
+      line-height: 1.12; letter-spacing: -1px; margin-bottom: 16px;
+    }
+    .section-sub {
+      font-size: 17px; color: rgba(255,255,255,0.55); line-height: 1.65;
+      max-width: 560px;
+    }
+
+    .problem-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px; margin-top: 56px;
+    }
+    .problem-card {
+      padding: 28px 24px;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+    }
+    .problem-icon { font-size: 28px; margin-bottom: 14px; }
+    .problem-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .problem-card p { font-size: 14px; color: rgba(255,255,255,0.5); line-height: 1.6; }
+
+    /* ── HOW IT WORKS ── */
+    .how-section {
+      padding: 100px 24px;
+      background: linear-gradient(180deg, var(--purple-deep) 0%, var(--purple-dark) 50%, var(--purple-mid) 100%);
+    }
+    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0; margin-top: 64px; }
+    .step { padding: 0 32px; position: relative; }
+    .step:not(:last-child)::after {
+      content: '';
+      position: absolute; top: 28px; right: -8px;
+      width: 16px; height: 2px;
+      background: linear-gradient(90deg, var(--coral), transparent);
+    }
+    .step-num {
+      width: 52px; height: 52px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 800;
+      background: linear-gradient(135deg, var(--coral), var(--amber));
+      margin-bottom: 20px;
+    }
+    .step h3 { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
+    .step p { font-size: 14px; color: rgba(255,255,255,0.5); line-height: 1.65; }
+
+    /* ── PHASES ── */
+    .phases-section { padding: 100px 24px; }
+    .phases-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 56px; }
+    .phase-card {
+      padding: 32px 28px; border-radius: 24px; position: relative; overflow: hidden;
+    }
+    .phase-card.intensive {
+      background: linear-gradient(135deg, #2D1B69, #6B3FA0);
+      border: 1px solid rgba(108,63,160,0.5);
+    }
+    .phase-card.maintenance {
+      background: linear-gradient(135deg, #3D1A3A, #C85C8E44);
+      border: 1px solid rgba(200,92,142,0.4);
+    }
+    .phase-card.complete {
+      background: linear-gradient(135deg, #1a2d1a, #26a04444);
+      border: 1px solid rgba(100,180,100,0.4);
+    }
+    .phase-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--gold); margin-bottom: 10px;
+    }
+    .phase-card h3 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+    .phase-card .phase-days { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 16px; }
+    .phase-card p { font-size: 14px; color: rgba(255,255,255,0.65); line-height: 1.65; }
+
+    /* ── TOPICS ── */
+    .topics-section {
+      padding: 100px 24px;
+      background: linear-gradient(180deg, var(--purple-mid) 0%, var(--pink) 50%, var(--coral) 100%);
+    }
+    .topics-grid {
+      display: flex; flex-wrap: wrap; gap: 10px; margin-top: 48px;
+    }
+    .topic-pill {
+      padding: 10px 20px; border-radius: 50px;
+      background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+      font-size: 14px; font-weight: 600;
+      display: flex; align-items: center; gap: 8px;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .topic-pill:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); }
+
+    /* ── STATS ── */
+    .stats-section { padding: 100px 24px; text-align: center; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px; margin-top: 56px; }
+    .stat-num {
+      font-size: clamp(44px, 6vw, 72px); font-weight: 800; letter-spacing: -2px;
+      background: linear-gradient(135deg, var(--coral), var(--gold));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .stat-label { font-size: 15px; color: rgba(255,255,255,0.5); margin-top: 6px; }
+
+    /* ── CTA ── */
+    .cta-section {
+      padding: 120px 24px;
+      background: linear-gradient(180deg, var(--coral) 0%, var(--amber) 50%, var(--gold) 100%);
+      text-align: center;
+    }
+    .cta-section h2 {
+      font-size: clamp(34px, 5vw, 60px); font-weight: 800;
+      color: #1B1464; letter-spacing: -1.5px; margin-bottom: 16px;
+    }
+    .cta-section p { font-size: 18px; color: rgba(27,20,100,0.65); margin-bottom: 40px; }
+    .btn-dark {
+      padding: 18px 48px;
+      background: var(--purple-dark); color: #fff;
+      border: none; border-radius: 50px;
+      font-family: inherit; font-size: 17px; font-weight: 700;
+      cursor: pointer; text-decoration: none;
+      box-shadow: 0 8px 30px rgba(27,20,100,0.25);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-dark:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(27,20,100,0.35); }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 40px 48px;
+      background: var(--purple-deep);
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: gap;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      font-size: 13px; color: rgba(255,255,255,0.3);
+    }
+    footer a { color: rgba(255,255,255,0.3); text-decoration: none; }
+    footer a:hover { color: rgba(255,255,255,0.6); }
+
+    /* ── ANIMATIONS ── */
+    @keyframes twinkle {
+      from { opacity: 0.15; } to { opacity: 0.7; }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+    .float { animation: float 5s ease-in-out infinite; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      nav { padding: 16px 20px; }
+      .step:not(:last-child)::after { display: none; }
+      .steps { gap: 32px; }
+      .step { padding: 0; }
+      footer { flex-direction: column; gap: 12px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">
+    <svg width="22" height="33" viewBox="0 0 43 65" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M11.1819 38.9403C10.5581 37.692 9.45004 35.4744 12.4747 32.9515C13.2968 32.2658 16.2008 30.3786 19.7613 28.0648C24.1891 25.1874 29.6321 21.6502 33.3493 18.9433C34.0061 18.465 34.4441 17.7526 34.5951 16.9543L37.5086 1.55298C37.7269 0.39907 36.4301 -0.434259 35.4712 0.243734L4.94597 21.8269C2.37602 23.5845 -2.00786 27.6968 1.03564 33.2206C3.4768 37.6513 11.4437 39.5134 11.4437 39.5134C11.3896 39.3559 11.2935 39.1636 11.1819 38.9403ZM31.53 25.4505C32.1537 26.6988 33.2618 28.9164 30.2371 31.4393C29.415 32.125 26.511 34.0122 22.9505 36.326C18.5228 39.2034 13.0797 42.7406 9.36254 45.4475C8.70576 45.9258 8.26777 46.6382 8.11675 47.4365L5.20321 62.8378C4.98492 63.9917 6.28172 64.8251 7.24062 64.1471L37.7659 42.5639C40.3358 40.8063 44.7197 36.694 41.6762 31.1702C39.235 26.7395 31.2681 24.8774 31.2681 24.8774C31.3223 25.0349 31.4184 25.2272 31.53 25.4505Z" fill="#FCD581"/>
+    </svg>
+    <span>Lytesnap</span>
+  </a>
+  <a href="#download" class="nav-cta">Download for Mac</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="stars" id="stars"></div>
+
+  <div class="hero-icon float">
+    <svg width="64" height="97" viewBox="0 0 43 65" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M11.1819 38.9403C10.5581 37.692 9.45004 35.4744 12.4747 32.9515C13.2968 32.2658 16.2008 30.3786 19.7613 28.0648C24.1891 25.1874 29.6321 21.6502 33.3493 18.9433C34.0061 18.465 34.4441 17.7526 34.5951 16.9543L37.5086 1.55298C37.7269 0.39907 36.4301 -0.434259 35.4712 0.243734L4.94597 21.8269C2.37602 23.5845 -2.00786 27.6968 1.03564 33.2206C3.4768 37.6513 11.4437 39.5134 11.4437 39.5134C11.3896 39.3559 11.2935 39.1636 11.1819 38.9403ZM31.53 25.4505C32.1537 26.6988 33.2618 28.9164 30.2371 31.4393C29.415 32.125 26.511 34.0122 22.9505 36.326C18.5228 39.2034 13.0797 42.7406 9.36254 45.4475C8.70576 45.9258 8.26777 46.6382 8.11675 47.4365L5.20321 62.8378C4.98492 63.9917 6.28172 64.8251 7.24062 64.1471L37.7659 42.5639C40.3358 40.8063 44.7197 36.694 41.6762 31.1702C39.235 26.7395 31.2681 24.8774 31.2681 24.8774C31.3223 25.0349 31.4184 25.2272 31.53 25.4505Z" fill="#FCD581"/>
+    </svg>
+  </div>
+
+  <div class="hero-badge">✦ 7-Day Treatment Protocol</div>
+
+  <h1><em>Flip the feed.</em><br>Break the loop.</h1>
+  <p>Lytesnap reverses YouTube's recommendation engine — by training it toward content you hate. Remove the reward that keeps you hooked.</p>
+
+  <div class="hero-actions">
+    <a href="#download" class="btn-primary">Download for Mac — Free</a>
+    <a href="#how" class="btn-ghost">See how it works</a>
+  </div>
+  <p class="hero-note">macOS · No account required · Works in background</p>
+
+  <div class="sun-glow"></div>
+</section>
+
+<!-- PROBLEM -->
+<section class="section" style="background: var(--purple-deep);">
+  <div class="section-inner">
+    <span class="section-label">The problem</span>
+    <h2 class="section-title">You're in a box<br>designed for rats.</h2>
+    <p class="section-sub">Every scroll is a lever pull. Occasionally it rewards you. That's all it takes. YouTube's algorithm runs the same mechanism BF Skinner used on rats — and it works just as well on people.</p>
+
+    <div class="problem-grid">
+      <div class="problem-card">
+        <div class="problem-icon">🎰</div>
+        <h3>The reward is the addiction</h3>
+        <p>You don't know what the next video will be — and occasionally it's great. That unpredictable hit of satisfaction is what keeps you pulling the lever.</p>
+      </div>
+      <div class="problem-card">
+        <div class="problem-icon">🌀</div>
+        <h3>Passive vs. conscious</h3>
+        <p>Watching content you chose deliberately is not addiction. Watching what the algorithm served you passively — that's the loop.</p>
+      </div>
+      <div class="problem-card">
+        <div class="problem-icon">🔁</div>
+        <h3>The feed reinforces itself</h3>
+        <p>Every passive watch trains the algorithm to serve more of the same. The loop tightens. Escaping gets harder the longer you wait.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section" id="how">
+  <div class="section-inner">
+    <span class="section-label">How it works</span>
+    <h2 class="section-title">Reverse the algorithm.<br>Unaddict naturally.</h2>
+    <p class="section-sub">Lytesnap uses the same mechanism YouTube uses against you — and turns it around. Automated sessions train the algorithm toward what you deliberately choose.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Pick your poison</h3>
+        <p>In Unaddict mode, choose the topics you <em>hate</em> — the content the algorithm keeps serving you that you want to escape.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Flood the feed</h3>
+        <p>Lytesnap runs a real browser session, deliberately watching and searching that content — on your terms, not the algorithm's.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Remove the reward</h3>
+        <p>When the feed is full of content you deliberately hate, there's nothing to reward you with. The algorithm pulls the lever — but every slot comes up blank.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <h3>Measure the shift</h3>
+        <p>A before/after feed score shows exactly how much the algorithm has moved in 7 days.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PHASES -->
+<section class="phases-section">
+  <div class="section-inner">
+    <span class="section-label">Treatment protocol</span>
+    <h2 class="section-title">Intensive then maintenance.<br>Just like therapy.</h2>
+    <p class="section-sub">A 7-day phased schedule runs automatically in the background — no babysitting required.</p>
+
+    <div class="phases-grid">
+      <div class="phase-card intensive">
+        <div class="phase-label">Phase 1</div>
+        <h3>Intensive</h3>
+        <div class="phase-days">Days 1 – 3 · Every 3 hours</div>
+        <p>Heavy-signal sessions flood the algorithm with your chosen topic. Sessions run every ~3 hours with a random delay to look organic.</p>
+      </div>
+      <div class="phase-card maintenance">
+        <div class="phase-label">Phase 2</div>
+        <h3>Maintenance</h3>
+        <div class="phase-days">Days 4 – 7 · Once per day</div>
+        <p>Lighter daily sessions reinforce the signal and catch any algorithm drift before it takes hold.</p>
+      </div>
+      <div class="phase-card complete">
+        <div class="phase-label">Phase 3</div>
+        <h3>Complete</h3>
+        <div class="phase-days">Day 8+ · You're done</div>
+        <p>The schedule stops automatically. Check your before/after feed score to see the difference. Reset anytime.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TOPICS -->
+<section class="topics-section">
+  <div class="section-inner">
+    <span class="section-label">Two modes</span>
+    <h2 class="section-title">Hate it into the feed.<br>Or love it in.</h2>
+    <p class="section-sub"><strong>Unaddict mode:</strong> deliberately pick topics you hate. Flooding the feed with them removes the reward entirely — the algorithm keeps pulling the lever, but there's nothing left to give you.<br><br><strong>Enjoy mode:</strong> pick topics you genuinely love. Train the algorithm toward content you consciously chose to want more of.</p>
+
+    <div class="topics-grid">
+      <div class="topic-pill">🎮 Gaming</div>
+      <div class="topic-pill">💄 Makeup &amp; Skincare</div>
+      <div class="topic-pill">📈 Finance &amp; Investing</div>
+      <div class="topic-pill">⚽ Sports</div>
+      <div class="topic-pill">🎬 Drama &amp; Film</div>
+      <div class="topic-pill">🐘 Conservative News</div>
+      <div class="topic-pill">🫏 Progressive News</div>
+      <div class="topic-pill">🎵 Music</div>
+      <div class="topic-pill">🔬 Science</div>
+      <div class="topic-pill">🍳 Food &amp; Cooking</div>
+      <div class="topic-pill">✈️ Travel</div>
+      <div class="topic-pill">+ anything</div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="stats-section" style="background: var(--purple-dark);">
+  <div class="section-inner">
+    <span class="section-label">By the numbers</span>
+    <h2 class="section-title">The algorithm is trainable.<br>We have the data.</h2>
+
+    <div class="stats-grid">
+      <div>
+        <div class="stat-num">43%</div>
+        <div class="stat-label">Average feed match after 7 days</div>
+      </div>
+      <div>
+        <div class="stat-num">3 hrs</div>
+        <div class="stat-label">Intensive session interval</div>
+      </div>
+      <div>
+        <div class="stat-num">7 days</div>
+        <div class="stat-label">Full treatment protocol</div>
+      </div>
+      <div>
+        <div class="stat-num">0</div>
+        <div class="stat-label">Manual effort required</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DOWNLOAD CTA -->
+<section class="cta-section" id="download">
+  <h2>Break the loop.</h2>
+  <p>Free download. Works in the background. The algorithm shifts in 7 days.</p>
+  <a href="#" class="btn-dark">Download for Mac — Free</a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <svg width="16" height="24" viewBox="0 0 43 65" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M11.1819 38.9403C10.5581 37.692 9.45004 35.4744 12.4747 32.9515C13.2968 32.2658 16.2008 30.3786 19.7613 28.0648C24.1891 25.1874 29.6321 21.6502 33.3493 18.9433C34.0061 18.465 34.4441 17.7526 34.5951 16.9543L37.5086 1.55298C37.7269 0.39907 36.4301 -0.434259 35.4712 0.243734L4.94597 21.8269C2.37602 23.5845 -2.00786 27.6968 1.03564 33.2206C3.4768 37.6513 11.4437 39.5134 11.4437 39.5134C11.3896 39.3559 11.2935 39.1636 11.1819 38.9403ZM31.53 25.4505C32.1537 26.6988 33.2618 28.9164 30.2371 31.4393C29.415 32.125 26.511 34.0122 22.9505 36.326C18.5228 39.2034 13.0797 42.7406 9.36254 45.4475C8.70576 45.9258 8.26777 46.6382 8.11675 47.4365L5.20321 62.8378C4.98492 63.9917 6.28172 64.8251 7.24062 64.1471L37.7659 42.5639C40.3358 40.8063 44.7197 36.694 41.6762 31.1702C39.235 26.7395 31.2681 24.8774 31.2681 24.8774C31.3223 25.0349 31.4184 25.2272 31.53 25.4505Z" fill="rgba(255,255,255,0.3)"/>
+    </svg>
+    <span>© 2026 Lytesnap</span>
+  </div>
+  <div style="display:flex;gap:24px;">
+    <a href="#">GitHub</a>
+    <a href="#">Privacy</a>
+    <a href="#">Contact</a>
+  </div>
+</footer>
+
+<script>
+  // Generate stars
+  const starsEl = document.getElementById('stars');
+  for (let i = 0; i < 60; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random() * 2.5 + 0.5;
+    s.style.cssText = `
+      width:${size}px; height:${size}px;
+      top:${Math.random()*100}%; left:${Math.random()*100}%;
+      animation-delay:${Math.random()*4}s;
+      animation-duration:${2+Math.random()*3}s;
+    `;
+    starsEl.appendChild(s);
+  }
+</script>
+</body>
+</html>

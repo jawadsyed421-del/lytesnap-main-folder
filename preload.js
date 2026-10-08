@@ -1,0 +1,28 @@
+const { contextBridge, ipcRenderer } = require('electron');
+
+contextBridge.exposeInMainWorld('lytesnap', {
+  getConfig:          ()      => ipcRenderer.invoke('get-config'),
+  setConfig:          (patch) => ipcRenderer.invoke('set-config', patch),
+  getBestScore:       ()      => ipcRenderer.invoke('get-best-score'),
+  getHistory:         ()      => ipcRenderer.invoke('get-history'),
+  startSession:       (opts)  => ipcRenderer.invoke('start-session', opts),
+  stopSession:        ()      => ipcRenderer.invoke('stop-session'),
+  sessionStatus:      ()      => ipcRenderer.invoke('session-status'),
+  scoreFeed:          (topic) => ipcRenderer.invoke('score-feed', topic),
+  setSchedule:        (opts)  => ipcRenderer.invoke('set-schedule', opts),
+  getScheduleStatus:  ()      => ipcRenderer.invoke('get-schedule-status'),
+  resetSchedule:      ()      => ipcRenderer.invoke('reset-schedule'),
+  authStatus:         ()      => ipcRenderer.invoke('auth-status'),
+  signOut:            ()      => ipcRenderer.invoke('sign-out'),
+  startAuth:          ()      => ipcRenderer.invoke('start-auth'),
+  getApiKeyStatus:    ()      => ipcRenderer.invoke('get-api-key-status'),
+  setUserApiKey:      (key)   => ipcRenderer.invoke('set-user-api-key', { key }),
+  clearUserApiKey:    ()      => ipcRenderer.invoke('clear-user-api-key'),
+  onSessionLog:            (cb) => ipcRenderer.on('session-log', (_, msg) => cb(msg)),
+  onSessionComplete:       (cb) => ipcRenderer.on('session-complete', (_, data) => cb(data)),
+  onAuthLog:               (cb) => ipcRenderer.on('auth-log', (_, msg) => cb(msg)),
+  onAuthComplete:          (cb) => ipcRenderer.on('auth-complete', (_, data) => cb(data)),
+  onScheduleStatusChanged:    (cb) => ipcRenderer.on('schedule-status-changed', (_, data) => cb(data)),
+  onScheduledSessionStarted:  (cb) => ipcRenderer.on('scheduled-session-started', (_, data) => cb(data)),
+  removeAllListeners:      (ch) => ipcRenderer.removeAllListeners(ch),
+});
